@@ -1,0 +1,41 @@
+
+
+NOTES (IMPORTING)
+
+    When using any of these modules, nearly all of its subroutines are imported by
+    default. This is for my own personal convenience. If you have name clashes or 
+    want something minimal, use the explicit import mechanisms. For example:
+
+        use Foo::Bar ()     # loads module but imports NO symbols
+        use Foo::Bar LIST   # imports only symbols specified in LIST
+
+
+NOTES (BASH SHELL)
+
+    Assuming these modules are installed in one of the paths included in the
+    Perl runtime global variable @INC (e.g. environment variable $PERL5LIB), 
+    the following bash script will create convenient bash aliases for access to 
+    some of the subroutines defined in the modules:
+
+        pkgdir=ardnew
+        peflag=(-le) # default Perl flags for ``pe'' alias
+
+        while read -re dir
+        do
+          if [[ -d "${dir}/${pkgdir}" ]]
+          then
+            mod=("${dir}/${pkgdir}"/*.pm)
+            mod=(${mod[@]##*/}) # remove everything before the filenames
+            mod=(${mod[@]%.pm}) # remove the file extensions
+            mod=(${mod[@]/%/=:all}) # add the ":all" export tag to each module
+            peflag=("${mod[@]/#/-Mardnew::}" "${peflag[@]}")
+            break
+          fi
+        done < <(perl -e 'print join $/, @INC')
+
+        alias     pe="perl ${peflag[@]}"
+        alias   walk="pe 'my \$c = shift; walk sub { eval \$c; if(\$@){ print \$@; exit } }, @ARGV'"
+        alias   sift="pe 'sift shift, @ARGV'"
+        alias  sifti="pe 'sifti shift, @ARGV'"
+        alias   bury="pe 'bury shift, @ARGV'"
+        alias  buryi="pe 'buryi shift, @ARGV'"
